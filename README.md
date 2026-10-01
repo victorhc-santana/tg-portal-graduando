@@ -17,6 +17,6 @@ O aplicativo busca solucionar a descentralização de informações acadêmicas,
 
 ## 🛠️ Como Executar o Backend Localmente
 1. Certifique-se de estar com o serviço MySQL ativo no **XAMPP**.
-2. Clone este repositório: `git clone https://github.com/SEU-USUARIO/NOME-DO-REPOSITORIO.git`
+2. Clone este repositório
 3. Abra a pasta do projeto na sua IDE (VS Code / IntelliJ / Eclipse).
 4. Execute a aplicação Spring Boot.

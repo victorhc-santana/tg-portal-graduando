@@ -1,28 +1,30 @@
 package br.com.fateczl.tgbackend.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
-@Table(name = "livros_vestibular")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter @NoArgsConstructor
 public class LivroVestibular {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 150)
+    @Column(length = 300)
     private String titulo;
 
-    @Column(nullable = false, length = 100)
     private String autor;
 
-    @Column(nullable = false, length = 50)
-    private String vestibular; // Ex: FUVEST 2027, UNICAMP
+    @ManyToOne
+    @JoinColumn(name = "vestibular_id")
+    private Vestibular vestibular;
 
-    private Integer anoPublicacao;
+    public LivroVestibular(String titulo, String autor, Vestibular vestibular) {
+        this.titulo = titulo;
+        this.autor = autor;
+        this.vestibular = vestibular;
+    }
 }

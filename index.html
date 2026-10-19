@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teste vocacional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fundo: #eef2f8;
+    --papel: #ffffff;
+    --tinta: #14213d;
+    --tinta-suave: #54607a;
+    --destaque: #3a4fe0;
+    --destaque-escuro: #2a3bb8;
+    --marca: #ffc23d;
+    --linha: #d3dbe8;
+    --erro: #b3261e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    background: var(--fundo);
+    color: var(--tinta);
+    font-family: "Figtree", system-ui, sans-serif;
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px 64px;
+  }
+  main { width: 100%; max-width: 640px; }
+  h1, h2 {
+    font-family: "Bricolage Grotesque", Georgia, serif;
+    line-height: 1.15;
+    margin: 0;
+  }
+  .topo { margin-bottom: 28px; }
+  .topo h1 { font-size: 1.5rem; }
+  .topo p { margin: 4px 0 0; color: var(--tinta-suave); }
+
+  .progresso { margin-bottom: 24px; }
+  .progresso-texto { font-size: .95rem; color: var(--tinta-suave); margin-bottom: 8px; }
+  .barra { height: 8px; background: var(--linha); border-radius: 99px; overflow: hidden; }
+  .barra > div { height: 100%; width: 0; background: var(--marca); transition: width .25s ease; }
+
+  .cartao {
+    background: var(--papel);
+    border-radius: 14px;
+    padding: 32px 28px;
+    box-shadow: 0 1px 0 var(--linha);
+  }
+  fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+  legend {
+    font-family: "Bricolage Grotesque", Georgia, serif;
+    font-weight: 700;
+    font-size: 1.75rem;
+    line-height: 1.2;
+    padding: 0;
+    margin-bottom: 24px;
+    max-width: 30ch;
+  }
+  .opcao { display: block; margin-bottom: 12px; }
+  .opcao input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .opcao span {
+    display: block;
+    padding: 14px 16px;
+    border: 2px solid var(--linha);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color .15s, background-color .15s;
+  }
+  .opcao span:hover { border-color: var(--destaque); }
+  .opcao input:checked + span {
+    border-color: var(--destaque);
+    background: #e8ebfd;
+    font-weight: 600;
+  }
+  .opcao input:focus-visible + span {
+    outline: 3px solid var(--destaque);
+    outline-offset: 2px;
+  }
+
+  .acoes { display: flex; justify-content: space-between; gap: 12px; margin-top: 28px; }
+  button {
+    font: inherit;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: 2px solid var(--destaque);
+    cursor: pointer;
+    transition: background-color .15s, opacity .15s;
+  }
+  button:focus-visible { outline: 3px solid var(--tinta); outline-offset: 2px; }
+  .primario { background: var(--destaque); color: #fff; }
+  .primario:hover:not(:disabled) { background: var(--destaque-escuro); }
+  .secundario { background: transparent; color: var(--destaque); }
+  .secundario:hover:not(:disabled) { background: #e8ebfd; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .vazio { visibility: hidden; }
+
+  .resultado h2 { font-size: 2.5rem; margin: 8px 0 12px; }
+  .resultado p { margin: 0 0 8px; }
+  .resultado .intro { color: var(--tinta-suave); }
+  .resultado button { margin-top: 20px; }
+
+  .aviso { color: var(--tinta-suave); }
+  .erro { color: var(--erro); font-weight: 600; margin: 0 0 8px; }
+
+  @media (max-width: 480px) {
+    .cartao { padding: 24px 18px; }
+    legend { font-size: 1.45rem; }
+    .resultado h2 { font-size: 2rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="topo">
+    <h1>Teste vocacional</h1>
+    <p>Escolha a alternativa que mais combina com você.</p>
+  </header>
+
+  <div class="progresso" id="progresso" hidden>
+    <div class="progresso-texto" id="progresso-texto"></div>
+    <div class="barra" role="presentation"><div id="barra-preenchida"></div></div>
+  </div>
+
+  <section class="cartao" id="cartao" aria-live="polite"></section>
+</main>
+
+<script>
+  // Endereço do back-end Spring Boot
+  const API_URL = "http://localhost:8080/api";
+
+  const cartao = document.getElementById("cartao");
+  const progresso = document.getElementById("progresso");
+  const progressoTexto = document.getElementById("progresso-texto");
+  const barra = document.getElementById("barra-preenchida");
+
+  let perguntas = [];
+  let indice = 0;
+  let respostas = {}; // { idPergunta: idAlternativa }
+
+  function el(tag, props = {}, ...filhos) {
+    const e = document.createElement(tag);
+    Object.assign(e, props);
+    filhos.forEach(f => e.append(f));
+    return e;
+  }
+
+  function mostrarMensagem(texto, { erro = false, tentarNovamente = null } = {}) {
+    progresso.hidden = true;
+    cartao.replaceChildren(el("p", { className: erro ? "erro" : "aviso", textContent: texto }));
+    if (tentarNovamente) {
+      cartao.append(el("button", {
+        className: "primario",
+        textContent: "Tentar novamente",
+        onclick: tentarNovamente
+      }));
+    }
+  }
+
+  async function carregarPerguntas() {
+    mostrarMensagem("Carregando perguntas...");
+    try {
+      const resp = await fetch(`${API_URL}/perguntas`);
+      if (!resp.ok) throw new Error(`Status ${resp.status}`);
+      perguntas = await resp.json();
+      if (perguntas.length === 0) {
+        mostrarMensagem("Nenhuma pergunta cadastrada ainda.");
+        return;
+      }
+      indice = 0;
+      respostas = {};
+      mostrarPergunta();
+    } catch (e) {
+      mostrarMensagem(
+        "Não foi possível carregar as perguntas. Verifique se o back-end está rodando em " +
+        API_URL + " e tente novamente.",
+        { erro: true, tentarNovamente: carregarPerguntas }
+      );
+    }
+  }
+
+  function mostrarPergunta() {
+    const p = perguntas[indice];
+    const ultima = indice === perguntas.length - 1;
+
+    progresso.hidden = false;
+    progressoTexto.textContent = `Pergunta ${indice + 1} de ${perguntas.length}`;
+    barra.style.width = `${(indice / perguntas.length) * 100}%`;
+
+    const fieldset = el("fieldset", {}, el("legend", { textContent: p.texto }));
+
+    p.alternativas.forEach(a => {
+      const input = el("input", {
+        type: "radio",
+        name: "alternativa",
+        value: a.id,
+        checked: respostas[p.id] === a.id,
+        onchange: () => {
+          respostas[p.id] = a.id;
+          avancar.disabled = false;
+        }
+      });
+      fieldset.append(el("label", { className: "opcao" }, input, el("span", { textContent: a.texto })));
+    });
+
+    const voltar = el("button", {
+      className: "secundario" + (indice === 0 ? " vazio" : ""),
+      textContent: "Voltar",
+      type: "button",
+      onclick: () => { indice--; mostrarPergunta(); }
+    });
+    const avancar = el("button", {
+      className: "primario",
+      textContent: ultima ? "Ver resultado" : "Próxima",
+      type: "button",
+      disabled: respostas[p.id] === undefined,
+      onclick: () => {
+        if (ultima) enviar();
+        else { indice++; mostrarPergunta(); }
+      }
+    });
+
+    cartao.replaceChildren(fieldset, el("div", { className: "acoes" }, voltar, avancar));
+  }
+
+  async function enviar() {
+    mostrarMensagem("Calculando seu resultado...");
+    try {
+      const resp = await fetch(`${API_URL}/resultado`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ alternativaIds: Object.values(respostas) })
+      });
+      if (!resp.ok) throw new Error(`Status ${resp.status}`);
+      mostrarResultado(await resp.json());
+    } catch (e) {
+      mostrarMensagem(
+        "Não foi possível calcular o resultado. Suas respostas continuam salvas nesta página.",
+        { erro: true, tentarNovamente: enviar }
+      );
+    }
+  }
+
+  function mostrarResultado(r) {
+    progresso.hidden = true;
+    const bloco = el("div", { className: "resultado" },
+      el("p", { className: "intro", textContent: "Sua área com mais afinidade é" }),
+      el("h2", { textContent: r.nome }),
+      el("p", { textContent: r.descricao }),
+      el("button", { className: "secundario", type: "button", textContent: "Refazer o teste", onclick: carregarPerguntas })
+    );
+    cartao.replaceChildren(bloco);
+  }
+
+  carregarPerguntas();
+</script>
+</body>
+</html>

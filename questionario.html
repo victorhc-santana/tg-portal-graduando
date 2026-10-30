@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Questionário · Orientação vocacional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fundo: #eef2f8;
+    --papel: #ffffff;
+    --tinta: #14213d;
+    --tinta-suave: #54607a;
+    --destaque: #3a4fe0;
+    --destaque-escuro: #2a3bb8;
+    --linha: #d3dbe8;
+    --erro: #b3261e;
+    --ok: #1b6e3c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    background: var(--fundo);
+    color: var(--tinta);
+    font-family: "Figtree", system-ui, sans-serif;
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px 64px;
+  }
+  main { width: 100%; max-width: 680px; }
+  h1, h2 { font-family: "Bricolage Grotesque", Georgia, serif; line-height: 1.15; margin: 0; }
+  h1 { font-size: 2rem; margin-bottom: 8px; }
+  h2 { font-size: 1.25rem; margin-bottom: 8px; }
+  .intro { color: var(--tinta-suave); margin: 0 0 24px; }
+
+  .cartao {
+    background: var(--papel);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 0 var(--linha);
+  }
+  .cartao p { margin: 0 0 10px; }
+  .cartao p:last-child { margin-bottom: 0; }
+  .ideia ul { margin: 8px 0 0; padding-left: 20px; }
+  .ideia li { margin-bottom: 4px; }
+
+  fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+  legend {
+    font-family: "Bricolage Grotesque", Georgia, serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    line-height: 1.25;
+    padding: 0;
+    margin-bottom: 14px;
+  }
+  .opcional { font-family: "Figtree", sans-serif; font-weight: 400; font-size: .95rem; color: var(--tinta-suave); }
+
+  .opcao { display: block; margin-bottom: 8px; }
+  .opcao input { position: absolute; opacity: 0; pointer-events: none; }
+  .opcao span {
+    display: block;
+    padding: 12px 14px;
+    border: 2px solid var(--linha);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color .15s, background-color .15s;
+  }
+  .opcao span:hover { border-color: var(--destaque); }
+  .opcao input:checked + span { border-color: var(--destaque); background: #e8ebfd; font-weight: 600; }
+  .opcao input:focus-visible + span { outline: 3px solid var(--destaque); outline-offset: 2px; }
+
+  .escala { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .escala .opcao { margin: 0; }
+  .escala .opcao span { text-align: center; padding: 12px 0; }
+  .extremos { display: flex; justify-content: space-between; margin-top: 8px; font-size: .9rem; color: var(--tinta-suave); }
+
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    padding: 12px 14px;
+    font: inherit;
+    color: inherit;
+    border: 2px solid var(--linha);
+    border-radius: 10px;
+    resize: vertical;
+  }
+  textarea:focus-visible { outline: 3px solid var(--destaque); outline-offset: 2px; border-color: var(--destaque); }
+
+  .erro-campo { color: var(--erro); font-weight: 600; margin-top: 10px; display: none; }
+  .invalido .erro-campo { display: block; }
+  .invalido { box-shadow: inset 4px 0 0 var(--erro); }
+
+  button {
+    font: inherit;
+    font-weight: 600;
+    padding: 14px 28px;
+    border-radius: 10px;
+    border: 2px solid var(--destaque);
+    background: var(--destaque);
+    color: #fff;
+    cursor: pointer;
+  }
+  button:hover:not(:disabled) { background: var(--destaque-escuro); }
+  button:disabled { opacity: .55; cursor: not-allowed; }
+  button:focus-visible { outline: 3px solid var(--tinta); outline-offset: 2px; }
+  #status { margin-top: 14px; font-weight: 600; }
+  #status.erro { color: var(--erro); }
+  .agradecimento { text-align: center; }
+  .agradecimento h2 { font-size: 1.75rem; color: var(--ok); }
+
+  @media (max-width: 480px) {
+    .cartao { padding: 22px 18px; }
+    h1 { font-size: 1.6rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>O que você acha da nossa ideia?</h1>
+  <p class="intro">Leva cerca de 2 minutos. Suas respostas são anônimas e vão ajudar no desenvolvimento do nosso TCC.</p>
+
+  <section class="cartao ideia">
+    <h2>A ideia do projeto</h2>
+    <p>Estamos criando um sistema web de orientação para estudantes que estão escolhendo o que cursar. Ele terá duas partes:</p>
+    <ul>
+      <li><strong>Teste vocacional:</strong> perguntas rápidas sobre seus gostos e hábitos, que indicam a área com mais afinidade com o seu perfil.</li>
+      <li><strong>Livros de vestibular:</strong> a lista das leituras obrigatórias de cada vestibular, como Fuvest e Unicamp, em um só lugar.</li>
+    </ul>
+  </section>
+
+  <form id="form" novalidate>
+    <section class="cartao" data-obrigatoria>
+      <fieldset>
+        <legend>1. Qual é o seu perfil?</legend>
+        <label class="opcao"><input type="radio" name="perfil" value="Estudante do ensino médio"><span>Estudante do ensino médio</span></label>
+        <label class="opcao"><input type="radio" name="perfil" value="Fazendo cursinho / prestando vestibular"><span>Fazendo cursinho ou prestando vestibular</span></label>
+        <label class="opcao"><input type="radio" name="perfil" value="Universitário"><span>Universitário</span></label>
+        <label class="opcao"><input type="radio" name="perfil" value="Professor ou orientador"><span>Professor ou orientador</span></label>
+        <label class="opcao"><input type="radio" name="perfil" value="Outro"><span>Outro</span></label>
+      </fieldset>
+      <p class="erro-campo">Escolha uma opção.</p>
+    </section>
+
+    <section class="cartao" data-obrigatoria>
+      <fieldset>
+        <legend>2. Você já fez algum teste vocacional?</legend>
+        <label class="opcao"><input type="radio" name="jaFezTeste" value="Sim"><span>Sim</span></label>
+        <label class="opcao"><input type="radio" name="jaFezTeste" value="Não"><span>Não</span></label>
+      </fieldset>
+      <p class="erro-campo">Escolha uma opção.</p>
+    </section>
+
+    <section class="cartao" data-obrigatoria>
+      <fieldset>
+        <legend>3. Uma ferramenta que une teste vocacional e livros de vestibular seria útil?</legend>
+        <div class="escala">
+          <label class="opcao"><input type="radio" name="utilidade" value="1"><span>1</span></label>
+          <label class="opcao"><input type="radio" name="utilidade" value="2"><span>2</span></label>
+          <label class="opcao"><input type="radio" name="utilidade" value="3"><span>3</span></label>
+          <label class="opcao"><input type="radio" name="utilidade" value="4"><span>4</span></label>
+          <label class="opcao"><input type="radio" name="utilidade" value="5"><span>5</span></label>
+        </div>
+        <div class="extremos"><span>Nada útil</span><span>Muito útil</span></div>
+      </fieldset>
+      <p class="erro-campo">Escolha uma nota de 1 a 5.</p>
+    </section>
+
+    <section class="cartao" data-obrigatoria>
+      <fieldset>
+        <legend>4. Você usaria esse sistema?</legend>
+        <div class="escala">
+          <label class="opcao"><input type="radio" name="interesse" value="1"><span>1</span></label>
+          <label class="opcao"><input type="radio" name="interesse" value="2"><span>2</span></label>
+          <label class="opcao"><input type="radio" name="interesse" value="3"><span>3</span></label>
+          <label class="opcao"><input type="radio" name="interesse" value="4"><span>4</span></label>
+          <label class="opcao"><input type="radio" name="interesse" value="5"><span>5</span></label>
+        </div>
+        <div class="extremos"><span>Provavelmente não</span><span>Com certeza</span></div>
+      </fieldset>
+      <p class="erro-campo">Escolha uma nota de 1 a 5.</p>
+    </section>
+
+    <section class="cartao">
+      <fieldset>
+        <legend>5. Quais vestibulares você gostaria de ver no sistema? <span class="opcional">(opcional)</span></legend>
+        <label class="opcao"><input type="checkbox" name="vestibulares" value="Fuvest"><span>Fuvest</span></label>
+        <label class="opcao"><input type="checkbox" name="vestibulares" value="Unicamp"><span>Unicamp</span></label>
+        <label class="opcao"><input type="checkbox" name="vestibulares" value="Enem"><span>Enem</span></label>
+        <label class="opcao"><input type="checkbox" name="vestibulares" value="Outros"><span>Outros</span></label>
+      </fieldset>
+    </section>
+
+    <section class="cartao">
+      <fieldset>
+        <legend>6. O que mais você gostaria de encontrar nele? <span class="opcional">(opcional)</span></legend>
+        <label class="opcao"><input type="checkbox" name="recursos" value="Sugestão de cursos"><span>Sugestão de cursos para o meu resultado</span></label>
+        <label class="opcao"><input type="checkbox" name="recursos" value="Informações sobre profissões"><span>Informações sobre as profissões</span></label>
+        <label class="opcao"><input type="checkbox" name="recursos" value="Resumos dos livros"><span>Resumos dos livros de vestibular</span></label>
+        <label class="opcao"><input type="checkbox" name="recursos" value="Salvar histórico de resultados"><span>Salvar o histórico dos meus resultados</span></label>
+      </fieldset>
+    </section>
+
+    <section class="cartao">
+      <fieldset>
+        <legend>7. Alguma sugestão ou crítica? <span class="opcional">(opcional)</span></legend>
+        <textarea name="sugestoes" maxlength="2000" aria-label="Sugestão ou crítica"></textarea>
+      </fieldset>
+    </section>
+
+    <button type="submit" id="enviar">Enviar respostas</button>
+    <p id="status" role="status" aria-live="polite"></p>
+  </form>
+</main>
+
+<script>
+  // Endereço do back-end Spring Boot
+  const API_URL = "http://localhost:8080/api";
+
+  const form = document.getElementById("form");
+  const botao = document.getElementById("enviar");
+  const status = document.getElementById("status");
+
+  function valor(nome) {
+    const marcado = form.querySelector(`input[name="${nome}"]:checked`);
+    return marcado ? marcado.value : null;
+  }
+  function valores(nome) {
+    return [...form.querySelectorAll(`input[name="${nome}"]:checked`)].map(i => i.value);
+  }
+
+  function validar() {
+    let primeiroInvalido = null;
+    form.querySelectorAll("[data-obrigatoria]").forEach(secao => {
+      const nome = secao.querySelector("input").name;
+      const ok = valor(nome) !== null;
+      secao.classList.toggle("invalido", !ok);
+      if (!ok && !primeiroInvalido) primeiroInvalido = secao;
+    });
+    if (primeiroInvalido) primeiroInvalido.scrollIntoView({ behavior: "smooth", block: "center" });
+    return primeiroInvalido === null;
+  }
+
+  // Tira o aviso de erro assim que a pessoa responde
+  form.addEventListener("change", e => {
+    const secao = e.target.closest("[data-obrigatoria]");
+    if (secao) secao.classList.remove("invalido");
+  });
+
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    status.textContent = "";
+    status.className = "";
+    if (!validar()) return;
+
+    botao.disabled = true;
+    botao.textContent = "Enviando...";
+
+    const corpo = {
+      perfil: valor("perfil"),
+      jaFezTeste: valor("jaFezTeste"),
+      utilidade: Number(valor("utilidade")),
+      interesse: Number(valor("interesse")),
+      vestibulares: valores("vestibulares"),
+      recursos: valores("recursos"),
+      sugestoes: form.elements["sugestoes"].value
+    };
+
+    try {
+      const resp = await fetch(`${API_URL}/questionario`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(corpo)
+      });
+      if (!resp.ok) throw new Error(`Status ${resp.status}`);
+
+      const obrigado = document.createElement("section");
+      obrigado.className = "cartao agradecimento";
+      obrigado.innerHTML = "<h2>Obrigado!</h2><p>Sua resposta foi enviada e vai ajudar muito no nosso projeto.</p>";
+      form.replaceWith(obrigado);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      status.className = "erro";
+      status.textContent = "Não foi possível enviar agora. Tente novamente em instantes.";
+      botao.disabled = false;
+      botao.textContent = "Enviar respostas";
+    }
+  });
+</script>
+</body>
+</html>
